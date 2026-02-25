@@ -1,5 +1,3 @@
-import 'package:expense_manager/app/app_routes.dart';
-import 'package:expense_manager/core/constants/app_colors.dart';
 import 'package:expense_manager/features/splash/bloc/splash_bloc.dart';
 import 'package:expense_manager/features/splash/bloc/splash_event.dart';
 import 'package:expense_manager/features/splash/bloc/splash_state.dart';
@@ -14,30 +12,24 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      // Creates SplashBloc only for this screen and disposes it after navigation
       create: (_) => SplashBloc()..add(SplashStarted()),
-      child: const _SplashView(),
-    );
-  }
-}
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: BlocListener<SplashBloc, SplashState>(
+          listener: (context, state) {
+            if (state is SplashFinished) {
+              context.go(state.nextRoute);
+            }
+          },
+          child: Center(
+            child: BlocBuilder<SplashBloc, SplashState>(
+              builder: (context, state) {
+                final bloc = context.read<SplashBloc>();
 
-class _SplashView extends StatelessWidget {
-  const _SplashView();
-
-  @override
-  Widget build(BuildContext context) {
-    final bloc = context.read<SplashBloc>();
-
-    return Scaffold(
-      backgroundColor: AppColors.secondaryColor,
-      body: BlocListener<SplashBloc, SplashState>(
-        listener: (context, state) {
-          if (state is SplashFinished) {
-            context.go(AppRoutes.onboarding);
-          }
-        },
-        child: Center(
-          child: SplashLogo(assetPath: bloc.model.logoPath, size: 160),
+                return SplashLogo(assetPath: bloc.model.logoPath);
+              },
+            ),
+          ),
         ),
       ),
     );

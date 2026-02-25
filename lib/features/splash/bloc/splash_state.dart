@@ -11,4 +11,11 @@ class SplashInitial extends SplashState {}
 
 class SplashLoading extends SplashState {}
 
-class SplashFinished extends SplashState {}
+class SplashFinished extends SplashState {
+  final String nextRoute;
+
+  const SplashFinished(this.nextRoute);
+
+  @override
+  List<Object?> get props => [nextRoute];
+}

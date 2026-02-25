@@ -1,7 +1,9 @@
+import 'package:expense_manager/app/app_keys.dart';
 import 'package:expense_manager/app/app_routes.dart';
 import 'package:expense_manager/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingSkipButton extends StatelessWidget {
   const OnboardingSkipButton({super.key});
@@ -14,7 +16,12 @@ class OnboardingSkipButton extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.only(top: 8, right: 16),
           child: TextButton(
-            onPressed: () => context.go(AppRoutes.home),
+          onPressed: () async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool(kHasSeenOnboarding, true);
+if(!context.mounted)return;
+  context.go(AppRoutes.login);
+},
             child: const Text(
               'SKIP',
               style: TextStyle(

@@ -1,3 +1,4 @@
+import 'package:expense_manager/app/app_keys.dart';
 import 'package:expense_manager/app/app_routes.dart';
 import 'package:expense_manager/core/constants/app_assets.dart';
 import 'package:expense_manager/core/constants/app_colors.dart';
@@ -9,11 +10,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingBottomActions extends StatelessWidget {
   final OnboardingState state;
 
   const OnboardingBottomActions({super.key, required this.state});
+
+  Future<void> _completeOnboarding(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(kHasSeenOnboarding, true);
+    if (!context.mounted) return;
+
+    context.go(AppRoutes.login);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,10 +53,11 @@ class OnboardingBottomActions extends StatelessWidget {
           if (state.index > 0) const SizedBox(width: 12),
 
           PrimaryButton(
+            isEnabled: true,
             title: state.isLast ? 'Get Started' : 'Next',
             onPressed: () {
               if (state.isLast) {
-                context.go(AppRoutes.home);
+                _completeOnboarding(context);
               } else {
                 context.read<OnboardingBloc>().add(OnboardingNext());
               }

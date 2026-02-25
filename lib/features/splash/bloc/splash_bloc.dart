@@ -1,8 +1,11 @@
+import 'package:expense_manager/app/app_keys.dart';
+import 'package:expense_manager/app/app_routes.dart';
 import 'package:expense_manager/features/splash/model/splash_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/constants/app_assets.dart';
 import 'splash_event.dart';
 import 'splash_state.dart';
-import '../../../../core/constants/app_assets.dart';
 
 class SplashBloc extends Bloc<SplashEvent, SplashState> {
   late final SplashModel _model;
@@ -21,8 +24,25 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
     Emitter<SplashState> emit,
   ) async {
     emit(SplashLoading());
+
     await Future.delayed(_model.duration);
-    emit(SplashFinished());
+
+    final prefs = await SharedPreferences.getInstance();
+
+    final token = prefs.getString('token');
+    final hasSeenOnboarding = prefs.getBool(kHasSeenOnboarding) ?? false;
+
+    late final String nextRoute;
+
+    if (token != null) {
+      nextRoute = AppRoutes.home;
+    } else if (!hasSeenOnboarding) {
+      nextRoute = AppRoutes.onboarding;
+    } else {
+      nextRoute = AppRoutes.login;
+    }
+
+    emit(SplashFinished(nextRoute));
   }
 
   SplashModel get model => _model;
