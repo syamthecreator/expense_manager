@@ -25,8 +25,9 @@ class PrimaryButton extends StatelessWidget {
       height: height,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-              isEnabled ? AppColors.kPrimaryColor : AppColors.greyShade,
+          backgroundColor: isEnabled
+              ? AppColors.kPrimaryColor
+              : AppColors.greyShade,
           disabledBackgroundColor: AppColors.greyShade,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
@@ -36,9 +37,7 @@ class PrimaryButton extends StatelessWidget {
         child: Text(
           title,
           style: TextStyle(
-            color: isEnabled
-                ? AppColors.whiteColor
-                : Colors.white54,
+            color: isEnabled ? AppColors.whiteColor : Colors.white54,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),

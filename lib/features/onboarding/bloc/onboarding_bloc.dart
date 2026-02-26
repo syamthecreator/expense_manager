@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'onboarding_event.dart';
 import 'onboarding_state.dart';
 
+/// BLoC responsible for onboarding flow
 class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   OnboardingBloc()
     : super(
@@ -46,7 +47,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   }
 }
 
-extension on OnboardingState {
+/// Extension for updating onboarding state
+extension OnboardingStateCopy on OnboardingState {
   OnboardingState copyWith({int? index}) {
     return OnboardingState(index: index ?? this.index, pages: pages);
   }

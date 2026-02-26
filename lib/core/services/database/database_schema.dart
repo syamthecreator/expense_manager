@@ -1,25 +1,26 @@
 class DatabaseSchema {
-  // ================== TABLE NAMES ==================
+  // TABLE NAMES
   static const String categoriesTable = 'categories';
   static const String transactionsTable = 'transactions';
 
-  // ================== COMMON COLUMNS ==================
+  // COMMON COLUMNS
   static const String id = 'id';
   static const String isSynced = 'is_synced';
   static const String isDeleted = 'is_deleted';
 
-  // ================== CATEGORY COLUMNS ==================
+  // CATEGORY COLUMNS
   static const String categoryName = 'name';
 
-  // ================== TRANSACTION COLUMNS ==================
+  // TRANSACTION COLUMNS
   static const String amount = 'amount';
   static const String note = 'note';
   static const String type = 'type'; // credit | debit
   static const String categoryId = 'category_id';
   static const String timestamp = 'timestamp';
 
-  // ================== CREATE TABLE: CATEGORIES ==================
-  static const String createCategoriesTable = '''
+  // CREATE TABLE: CATEGORIES
+  static const String createCategoriesTable =
+      '''
   CREATE TABLE $categoriesTable (
     $id TEXT PRIMARY KEY,
     $categoryName TEXT NOT NULL,
@@ -28,8 +29,9 @@ class DatabaseSchema {
   );
   ''';
 
-  // ================== CREATE TABLE: TRANSACTIONS ==================
-  static const String createTransactionsTable = '''
+  // CREATE TABLE: TRANSACTIONS
+  static const String createTransactionsTable =
+      '''
   CREATE TABLE $transactionsTable (
     $id TEXT PRIMARY KEY,
     $amount REAL NOT NULL,
@@ -45,13 +47,15 @@ class DatabaseSchema {
   );
   ''';
 
-  // ================== INDEXES ==================
-  static const String transactionCategoryIndex = '''
+  // INDEXES
+  static const String transactionCategoryIndex =
+      '''
   CREATE INDEX idx_transactions_category
   ON $transactionsTable($categoryId);
   ''';
 
-  static const String transactionDeletedIndex = '''
+  static const String transactionDeletedIndex =
+      '''
   CREATE INDEX idx_transactions_deleted
   ON $transactionsTable($isDeleted);
   ''';

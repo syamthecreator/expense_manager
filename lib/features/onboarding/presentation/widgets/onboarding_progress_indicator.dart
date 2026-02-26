@@ -16,30 +16,40 @@ class OnboardingProgressIndicator extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: LayoutBuilder(
-        builder: (context, constraints) {
-          const gap = 12.0;
-          final totalGap = gap * (total - 1);
-          final barWidth = (constraints.maxWidth - totalGap) / total;
-
-          return Row(
-            children: List.generate(
-              total,
-              (index) => AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                margin: EdgeInsets.only(right: index == total - 1 ? 0 : gap),
-                width: barWidth,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: index <= currentIndex
-                      ? AppColors.whiteColor
-                      : Colors.white38,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          );
-        },
+        builder: (context, constraints) => _buildProgressBars(constraints),
       ),
     );
+  }
+
+  Widget _buildProgressBars(BoxConstraints constraints) {
+    const gap = 12.0;
+    final totalGap = gap * (total - 1);
+    final barWidth = (constraints.maxWidth - totalGap) / total;
+
+    return Row(
+      children: List.generate(
+        total,
+        (index) => _buildProgressBar(index, barWidth, index == total - 1),
+      ),
+    );
+  }
+
+  Widget _buildProgressBar(int index, double width, bool isLast) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      margin: EdgeInsets.only(right: isLast ? 0 : 12),
+      width: width,
+      height: 4,
+      decoration: BoxDecoration(
+        color: _getBarColor(index),
+        borderRadius: BorderRadius.circular(8),
+      ),
+    );
+  }
+
+  Color _getBarColor(int index) {
+    return index <= currentIndex
+        ? AppColors.whiteColor
+        : Colors.white38;
   }
 }

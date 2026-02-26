@@ -7,6 +7,7 @@ import '../../../../core/constants/app_assets.dart';
 import 'splash_event.dart';
 import 'splash_state.dart';
 
+/// BLoC responsible for splash screen flow
 class SplashBloc extends Bloc<SplashEvent, SplashState> {
   late final SplashModel _model;
 
@@ -19,6 +20,7 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
     on<SplashStarted>(_onStarted);
   }
 
+  /// Handles splash startup logic and navigation decision
   Future<void> _onStarted(
     SplashStarted event,
     Emitter<SplashState> emit,
@@ -28,7 +30,6 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
     await Future.delayed(_model.duration);
 
     final prefs = await SharedPreferences.getInstance();
-
     final token = prefs.getString('token');
     final hasSeenOnboarding = prefs.getBool(kHasSeenOnboarding) ?? false;
 
@@ -45,5 +46,6 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
     emit(SplashFinished(nextRoute));
   }
 
+  /// Exposes splash configuration model
   SplashModel get model => _model;
 }

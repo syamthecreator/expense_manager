@@ -1,22 +1,40 @@
 import 'package:equatable/equatable.dart';
+
+/// Represents the current authentication step/status
 enum AuthStatus {
-  initial,
-  sendingOtp,
-  otpSent,
-  verifying,
-  needsNickname,
-  authenticated,
-  error,
+  initial, // Initial state (nothing started)
+  sendingOtp, // OTP API call in progress
+  otpSent, // OTP successfully sent
+  verifying, // Verifying OTP / creating account
+  needsNickname, // New user needs to enter nickname
+  authenticated, // User successfully logged in
+  error, // Any error state
 }
 
+/// Holds all authentication-related data
 class AuthState extends Equatable {
+  // Entered phone number
   final String phone;
+
+  // OTP entered by user
   final String otp;
+
+  // OTP received from API (for validation)
   final String? apiOtp;
+
+  // Whether user already exists in backend
   final bool userExists;
+
+  // User nickname (existing or newly created)
   final String? nickname;
+
+  // Auth token returned from API
   final String? token;
+
+  // Current authentication status
   final AuthStatus status;
+
+  // Error message to show in UI
   final String? errorMessage;
 
   const AuthState({
@@ -30,6 +48,8 @@ class AuthState extends Equatable {
     this.errorMessage,
   });
 
+  /// Creates a new state with updated values
+  /// Only provided fields will be replaced
   AuthState copyWith({
     String? phone,
     String? otp,
@@ -53,6 +73,14 @@ class AuthState extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [phone, otp, apiOtp, userExists, nickname, token, status, errorMessage];
+  List<Object?> get props => [
+    phone,
+    otp,
+    apiOtp,
+    userExists,
+    nickname,
+    token,
+    status,
+    errorMessage,
+  ];
 }

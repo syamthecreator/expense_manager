@@ -4,72 +4,64 @@ import 'package:uuid/uuid.dart';
 import 'package:sqflite/sqflite.dart';
 import '../model/transaction_model.dart';
 
-class TransactionWithCategory {
-  final TransactionModel transaction;
-  final String categoryName;
-
-  TransactionWithCategory({
-    required this.transaction,
-    required this.categoryName,
-  });
-}
-
 class TransactionRepository {
-  final _uuid = const Uuid();
+  final _uuid =
+      const Uuid(); // UUID generator for creating unique transaction IDs
 
-  /// Fetch recent transactions WITH category name (SQL JOIN)
+  /// Fetch recent transactions with category names (limited number for home screen)
   Future<List<TransactionWithCategory>> getRecentTransactions({
-    int limit = 10,
+    int limit = 10, // Default to 10 most recent transactions
   }) async {
-    final db = await AppDatabase.instance.database;
+    final db = await AppDatabase.instance.database; // Get database instance
 
-    final result = await db.rawQuery('''
-      SELECT 
-        t.*,
-        c.${DatabaseSchema.categoryName} AS category_name
+    // Join transactions with categories to get category name for each transaction
+    final result = await db.rawQuery(
+      '''
+      SELECT t.*, c.${DatabaseSchema.categoryName} AS category_name
       FROM ${DatabaseSchema.transactionsTable} t
       JOIN ${DatabaseSchema.categoriesTable} c
-        ON t.${DatabaseSchema.categoryId} = c.${DatabaseSchema.id}
+      ON t.${DatabaseSchema.categoryId} = c.${DatabaseSchema.id}
       WHERE t.${DatabaseSchema.isDeleted} = 0
       ORDER BY t.${DatabaseSchema.timestamp} DESC
       LIMIT ?
-    ''', [limit]);
+    ''',
+      [limit],
+    );
 
+    // Convert raw data to model objects with category names
     return result.map((row) {
-      final transaction = TransactionModel.fromMap(row);
       return TransactionWithCategory(
-        transaction: transaction,
+        transaction: TransactionModel.fromMap(row),
         categoryName: row['category_name'] as String,
       );
     }).toList();
   }
 
-  /// Fetch ALL active transactions (used in transactions screen)
+  /// Fetch all non-deleted transactions with category names
   Future<List<TransactionWithCategory>> getAllTransactions() async {
     final db = await AppDatabase.instance.database;
 
+    // Join transactions with categories, exclude deleted items, order by newest first
     final result = await db.rawQuery('''
-      SELECT 
-        t.*,
-        c.${DatabaseSchema.categoryName} AS category_name
+      SELECT t.*, c.${DatabaseSchema.categoryName} AS category_name
       FROM ${DatabaseSchema.transactionsTable} t
       JOIN ${DatabaseSchema.categoriesTable} c
-        ON t.${DatabaseSchema.categoryId} = c.${DatabaseSchema.id}
+      ON t.${DatabaseSchema.categoryId} = c.${DatabaseSchema.id}
       WHERE t.${DatabaseSchema.isDeleted} = 0
       ORDER BY t.${DatabaseSchema.timestamp} DESC
     ''');
 
+    // Convert all rows to model objects
     return result.map((row) {
-      final transaction = TransactionModel.fromMap(row);
       return TransactionWithCategory(
-        transaction: transaction,
+        transaction: TransactionModel.fromMap(row),
         categoryName: row['category_name'] as String,
       );
     }).toList();
   }
 
-  /// Insert transaction (offline-first)
-  Future<TransactionModel> addTransaction({
+  /// Add a new transaction to the database
+  Future<void> addTransaction({
     required double amount,
     required String type,
     required String categoryId,
@@ -77,7 +69,8 @@ class TransactionRepository {
   }) async {
     final db = await AppDatabase.instance.database;
 
-    final transaction = TransactionModel(
+    // Create new transaction with unique ID and current timestamp
+    final tx = TransactionModel(
       id: _uuid.v4(),
       amount: amount,
       type: type,
@@ -88,22 +81,46 @@ class TransactionRepository {
 
     await db.insert(
       DatabaseSchema.transactionsTable,
-      transaction.toMap(),
+      tx.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-
-    return transaction;
   }
 
-  /// Soft delete transaction
-  Future<void> deleteTransaction(String transactionId) async {
+  /// Soft delete a transaction (mark as deleted instead of permanent removal)
+  Future<void> deleteTransaction(String id) async {
     final db = await AppDatabase.instance.database;
 
+    // Update isDeleted flag to 1 and mark as not synced with server
     await db.update(
       DatabaseSchema.transactionsTable,
-      {DatabaseSchema.isDeleted: 1, DatabaseSchema.isSynced: 0},
+      {
+        DatabaseSchema.isDeleted: 1, // Soft delete flag
+        DatabaseSchema.isSynced: 0, // Mark for future sync
+      },
       where: '${DatabaseSchema.id} = ?',
-      whereArgs: [transactionId],
+      whereArgs: [id],
     );
+  }
+
+  /// Get total debit amount for the current month (non-deleted)
+  Future<double> getCurrentMonthDebitTotal() async {
+    final db = await AppDatabase.instance.database;
+
+    final now = DateTime.now();
+    final startOfMonth = DateTime(now.year, now.month, 1);
+    final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
+    final result = await db.rawQuery(
+      '''
+    SELECT IFNULL(SUM(${DatabaseSchema.amount}), 0) AS total
+    FROM ${DatabaseSchema.transactionsTable}
+    WHERE ${DatabaseSchema.type} = 'debit'
+      AND ${DatabaseSchema.isDeleted} = 0
+      AND ${DatabaseSchema.timestamp} BETWEEN ? AND ?
+    ''',
+      [startOfMonth.toIso8601String(), endOfMonth.toIso8601String()],
+    );
+
+    return (result.first['total'] as num).toDouble();
   }
 }

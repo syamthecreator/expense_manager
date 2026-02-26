@@ -43,6 +43,9 @@ dependencies:
   sqflite: ^2.4.2
   path: ^1.9.1
   uuid: ^4.5.3
+  flutter_launcher_icons: ^0.14.4
+  intl: ^0.20.2
+  flutter_local_notifications: ^20.1.0
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +73,13 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_logo.png"
+  adaptive_icon_background: "#000000"
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

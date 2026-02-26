@@ -1,5 +1,6 @@
 import 'package:expense_manager/app/app_routes.dart';
 import 'package:expense_manager/core/constants/app_colors.dart';
+import 'package:expense_manager/core/utils/helper.dart';
 import 'package:expense_manager/core/widgets/primary_button.dart';
 import 'package:expense_manager/features/auth/bloc/auth_bloc.dart';
 import 'package:expense_manager/features/auth/bloc/auth_event.dart';
@@ -20,9 +21,6 @@ class _LoginView extends StatelessWidget {
   const _LoginView();
 
   static const _horizontalPadding = 24.0;
-  static const _spacingSmall = 8.0;
-  static const _spacingMedium = 24.0;
-  static const _spacingLarge = 32.0;
 
   @override
   Widget build(BuildContext context) {
@@ -36,13 +34,13 @@ class _LoginView extends StatelessWidget {
             children: [
               SizedBox(height: 80),
               _HeaderText(),
-              SizedBox(height: _spacingSmall),
+              SizedBox(height: 8),
               _SubtitleText(),
-              SizedBox(height: _spacingLarge),
+              SizedBox(height: 32),
               _PhoneInputField(),
-              SizedBox(height: _spacingMedium),
+              SizedBox(height: 24),
               _ContinueButton(),
-              SizedBox(height: _spacingLarge),
+              SizedBox(height: 32),
             ],
           ),
         ),
@@ -52,7 +50,7 @@ class _LoginView extends StatelessWidget {
 
   void _handleAuthState(BuildContext context, AuthState state) {
     if (state.status == AuthStatus.otpSent) {
-      context.push('${AppRoutes.login}/verifyOtp');
+      context.push(AppRoutes.verifyOtp);
     }
   }
 }
@@ -111,25 +109,37 @@ class _PhoneInputField extends StatelessWidget {
             style: TextStyle(color: AppColors.whiteColor, fontSize: 16),
           ),
           const SizedBox(width: 12),
-          const VerticalDivider(
-            color: AppColors.whiteColor,
-            thickness: 1,
-            width: 1,
-            indent: 18,
-            endIndent: 18,
-          ),
+          const _VerticalDivider(),
           const SizedBox(width: 12),
           Expanded(
             child: TextField(
               keyboardType: TextInputType.phone,
               style: const TextStyle(color: AppColors.whiteColor),
-              onChanged: (value) =>
-                  context.read<AuthBloc>().add(PhoneNumberChanged(value)),
+              onChanged: (value) => _onPhoneChanged(context, value),
               decoration: _inputDecoration,
             ),
           ),
         ],
       ),
+    );
+  }
+
+  void _onPhoneChanged(BuildContext context, String value) {
+    context.read<AuthBloc>().add(PhoneNumberChanged(value));
+  }
+}
+
+class _VerticalDivider extends StatelessWidget {
+  const _VerticalDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return const VerticalDivider(
+      color: AppColors.whiteColor,
+      thickness: 1,
+      width: 1,
+      indent: 18,
+      endIndent: 18,
     );
   }
 }
@@ -141,27 +151,25 @@ class _ContinueButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
-        final isValid = isValidIndianMobile(state.phone);
+        final isValidPhone = Helper().isValidIndianMobile(state.phone);
         return SizedBox(
           width: double.infinity,
           child: PrimaryButton(
-            title: state.status == AuthStatus.sendingOtp
-                ? 'Sending...'
-                : 'Continue',
+            title: _getButtonTitle(state),
             isExpanded: false,
-            isEnabled: isValid,
-
-            onPressed: isValidIndianMobile(state.phone)
-                ? () => context.read<AuthBloc>().add(SubmitPhoneNumber())
-                : null,
+            isEnabled: isValidPhone,
+            onPressed: isValidPhone ? () => _onContinuePressed(context) : null,
           ),
         );
       },
     );
   }
 
-  bool isValidIndianMobile(String phone) {
-    final regex = RegExp(r'^[6-9]\d{9}$');
-    return regex.hasMatch(phone);
+  String _getButtonTitle(AuthState state) {
+    return state.status == AuthStatus.sendingOtp ? 'Sending...' : 'Continue';
+  }
+
+  void _onContinuePressed(BuildContext context) {
+    context.read<AuthBloc>().add(SubmitPhoneNumber());
   }
 }

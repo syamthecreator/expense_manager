@@ -1,5 +1,7 @@
 import 'package:expense_manager/app/app_routes.dart';
+import 'package:expense_manager/core/constants/app_assets.dart';
 import 'package:expense_manager/core/constants/app_colors.dart';
+import 'package:expense_manager/core/utils/helper.dart';
 import 'package:expense_manager/core/widgets/primary_button.dart';
 import 'package:expense_manager/features/auth/bloc/auth_bloc.dart';
 import 'package:expense_manager/features/auth/bloc/auth_event.dart';
@@ -8,6 +10,7 @@ import 'package:expense_manager/features/auth/presentation/widgets/auth_backgrou
 import 'package:expense_manager/features/auth/presentation/widgets/otp_input_box.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 
 class VerifyOtpScreen extends StatefulWidget {
@@ -23,6 +26,11 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeScreen();
+  }
+
+  void _initializeScreen() {
+    context.read<AuthBloc>().add(const ClearOtp());
     _scheduleOtpAutoFill();
   }
 
@@ -44,58 +52,82 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
         padding: const EdgeInsets.all(_padding),
         child: BlocListener<AuthBloc, AuthState>(
           listener: _handleAuthState,
-          child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _BackButton(),
-              SizedBox(height: 24),
-              _HeaderText(),
-              SizedBox(height: 8),
-              _SubtitleText(),
-              SizedBox(height: 12),
-              _TestOtpDisplay(),
-              SizedBox(height: 32),
-              _OtpInputBoxes(),
-              SizedBox(height: 32),
-              _VerifyButton(),
-              SizedBox(height: 16),
-              _FooterText(),
-            ],
-          ),
+          child: const _VerifyOtpContent(),
         ),
       ),
     );
   }
 
   void _handleAuthState(BuildContext context, AuthState state) {
-    if (state.status == AuthStatus.authenticated) {
-      context.go(AppRoutes.home);
-    } else if (state.status == AuthStatus.needsNickname) {
-      context.go('/login/nickname');
+    switch (state.status) {
+      case AuthStatus.authenticated:
+        context.go(AppRoutes.home);
+        break;
+      case AuthStatus.needsNickname:
+        context.go(AppRoutes.nickname);
+        break;
+      default:
+        break;
     }
   }
 }
 
+// Extracted main content widget
+class _VerifyOtpContent extends StatelessWidget {
+  const _VerifyOtpContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _BackButton(),
+        SizedBox(height: 24),
+        _HeaderText(),
+        SizedBox(height: 8),
+        _SubtitleText(),
+        SizedBox(height: 12),
+        _TestOtpDisplay(),
+        SizedBox(height: 32),
+        _OtpInputSection(),
+        SizedBox(height: 32),
+        _VerifyButtonSection(),
+        SizedBox(height: 16),
+        _FooterText(),
+      ],
+    );
+  }
+}
+
+// Extracted widgets with single responsibility
 class _BackButton extends StatelessWidget {
   const _BackButton();
+
+  void _handleBackPress(BuildContext context) {
+    context.read<AuthBloc>().add(const ClearOtp());
+    context.pop();
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.pop(),
+      onTap: () => _handleBackPress(context),
       child: Container(
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: Colors.black,
+          color: AppColors.blackColor,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: const Color.fromRGBO(240, 240, 240, 0.2),
-            width: 1,
-          ),
+          border: Border.all(color: const Color(0x33F0F0F0), width: 1),
         ),
         alignment: Alignment.center,
-        child: Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
+        child: SvgPicture.asset(
+          AppAssets.iosLeftArrow,
+          colorFilter: const ColorFilter.mode(
+            AppColors.whiteColor,
+            BlendMode.srcIn,
+          ),
+        ),
       ),
     );
   }
@@ -122,9 +154,15 @@ class _SubtitleText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Text(
-      'Enter the 6-digit code',
-      style: TextStyle(color: Colors.white70),
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        final maskedPhone = Helper().maskIndianPhone(state.phone);
+
+        return Text(
+          'Enter the 6-digit code sent to $maskedPhone',
+          style: const TextStyle(color: Colors.white70),
+        );
+      },
     );
   }
 }
@@ -138,12 +176,20 @@ class _TestOtpDisplay extends StatelessWidget {
       builder: (context, state) {
         if (state.apiOtp == null) return const SizedBox.shrink();
 
-        return Text(
-          'TEST OTP: ${state.apiOtp}',
-          style: const TextStyle(
-            color: Colors.yellowAccent,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.yellow.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.yellow.withValues(alpha: 0.3)),
+          ),
+          child: Text(
+            '🔑 Test OTP: ${state.apiOtp}',
+            style: const TextStyle(
+              color: Colors.yellowAccent,
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+            ),
           ),
         );
       },
@@ -151,8 +197,8 @@ class _TestOtpDisplay extends StatelessWidget {
   }
 }
 
-class _OtpInputBoxes extends StatelessWidget {
-  const _OtpInputBoxes();
+class _OtpInputSection extends StatelessWidget {
+  const _OtpInputSection();
 
   static const _otpLength = 6;
 
@@ -166,8 +212,9 @@ class _OtpInputBoxes extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: List.generate(
             _otpLength,
-            (index) => OtpInputBox(
-              value: otp[index].trim(),
+            (index) => _OtpInputBoxWrapper(
+              index: index,
+              value: otp[index],
               isActive: index == state.otp.length,
             ),
           ),
@@ -177,12 +224,49 @@ class _OtpInputBoxes extends StatelessWidget {
   }
 }
 
-class _VerifyButton extends StatelessWidget {
-  const _VerifyButton();
+// Wrapper for OtpInputBox with key for proper rebuilding
+class _OtpInputBoxWrapper extends StatelessWidget {
+  final int index;
+  final String value;
+  final bool isActive;
+
+  const _OtpInputBoxWrapper({
+    required this.index,
+    required this.value,
+    required this.isActive,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return OtpInputBox(
+      key: ValueKey('otp_$index'),
+      value: value.trim(),
+      isActive: isActive,
+    );
+  }
+}
+
+class _VerifyButtonSection extends StatelessWidget {
+  const _VerifyButtonSection();
 
   bool _isEnabled(AuthState state) {
     return RegExp(r'^\d{6}$').hasMatch(state.otp) &&
         state.status != AuthStatus.verifying;
+  }
+
+  String _getButtonText(AuthState state) {
+    switch (state.status) {
+      case AuthStatus.verifying:
+        return 'Verifying...';
+      case AuthStatus.error:
+        return 'Try Again';
+      default:
+        return 'Verify';
+    }
+  }
+
+  void _verifyOtp(BuildContext context) {
+    context.read<AuthBloc>().add(VerifyOtp());
   }
 
   @override
@@ -190,24 +274,32 @@ class _VerifyButton extends StatelessWidget {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         final enabled = _isEnabled(state);
+        final buttonText = _getButtonText(state);
 
-        return SizedBox(
-          width: double.infinity,
-          child: PrimaryButton(
-            isExpanded: false,
-            title: state.status == AuthStatus.verifying
-                ? 'Verifying...'
-                : 'Verify',
-            isEnabled: enabled,
-            onPressed: enabled ? () => _verifyOtp(context) : null,
-          ),
+        return Column(
+          children: [
+            SizedBox(
+              width: double.infinity,
+              child: PrimaryButton(
+                isExpanded: false,
+                title: buttonText,
+                isEnabled: enabled,
+                onPressed: enabled ? () => _verifyOtp(context) : null,
+              ),
+            ),
+            if (state.status == AuthStatus.error && state.errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Text(
+                  state.errorMessage!,
+                  style: const TextStyle(color: Colors.redAccent),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+          ],
         );
       },
     );
-  }
-
-  void _verifyOtp(BuildContext context) {
-    context.read<AuthBloc>().add(VerifyOtp());
   }
 }
 
@@ -216,9 +308,13 @@ class _FooterText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Text(
-      'OTP auto-filled for testing purposes',
-      style: TextStyle(color: Colors.white38),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: const Text(
+        'OTP auto-filled for testing purposes',
+        style: TextStyle(color: Colors.white38, fontSize: 14),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 }

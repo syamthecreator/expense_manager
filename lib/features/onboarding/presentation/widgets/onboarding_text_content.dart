@@ -11,19 +11,35 @@ class OnboardingTextContent extends StatelessWidget {
     required this.description,
   });
 
+  static const Duration _animationDuration = Duration(milliseconds: 300);
+  static const EdgeInsets _padding = EdgeInsets.symmetric(horizontal: 24);
+  static const double _titleFontSize = 22;
+  static const double _descriptionFontSize = 14;
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        switchInCurve: Curves.easeIn,
-        switchOutCurve: Curves.easeOut,
-        child: _TextBlock(
-          key: ValueKey(title),
-          title: title,
-          description: description,
-        ),
+    return const Padding(padding: _padding, child: _AnimatedTextContent());
+  }
+}
+
+class _AnimatedTextContent extends StatelessWidget {
+  const _AnimatedTextContent();
+
+  @override
+  Widget build(BuildContext context) {
+    final onboardingTextContent = context
+        .findAncestorWidgetOfExactType<OnboardingTextContent>();
+    final title = onboardingTextContent?.title ?? '';
+    final description = onboardingTextContent?.description ?? '';
+
+    return AnimatedSwitcher(
+      duration: OnboardingTextContent._animationDuration,
+      switchInCurve: Curves.easeIn,
+      switchOutCurve: Curves.easeOut,
+      child: _TextBlock(
+        key: ValueKey<String>(title),
+        title: title,
+        description: description,
       ),
     );
   }
@@ -33,26 +49,27 @@ class _TextBlock extends StatelessWidget {
   final String title;
   final String description;
 
-  const _TextBlock({super.key, required this.title, required this.description});
+  const _TextBlock({required this.title, required this.description, super.key});
+
+  static const TextStyle _titleStyle = TextStyle(
+    fontSize: OnboardingTextContent._titleFontSize,
+    fontWeight: FontWeight.bold,
+    color: AppColors.whiteColor,
+  );
+
+  static const TextStyle _descriptionStyle = TextStyle(
+    fontSize: OnboardingTextContent._descriptionFontSize,
+    color: Colors.white70,
+  );
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: AppColors.whiteColor,
-          ),
-        ),
+        Text(title, style: _titleStyle),
         const SizedBox(height: 12),
-        Text(
-          description,
-          style: const TextStyle(fontSize: 14, color: Colors.white70),
-        ),
+        Text(description, style: _descriptionStyle),
       ],
     );
   }

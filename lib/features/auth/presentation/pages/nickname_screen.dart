@@ -20,7 +20,9 @@ class NicknameScreen extends StatefulWidget {
 
 class _NicknameScreenState extends State<NicknameScreen> {
   late final TextEditingController _controller;
-  static const _spacingSmall = 8.0;
+
+  static const _paddingAll = 24.0;
+  static const _topPadding = 40.0;
 
   @override
   void initState() {
@@ -38,16 +40,16 @@ class _NicknameScreenState extends State<NicknameScreen> {
   Widget build(BuildContext context) {
     return AuthBackground(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(_paddingAll),
         child: BlocListener<AuthBloc, AuthState>(
           listener: _handleAuthState,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 40),
+              const SizedBox(height: _topPadding),
               const _HeaderText(),
-              SizedBox(height: _spacingSmall),
-              _SubtitleText(),
+              const SizedBox(height: 8),
+              const _SubtitleText(),
               const SizedBox(height: 24),
               _NicknameInputField(controller: _controller),
               const SizedBox(height: 24),
@@ -71,17 +73,13 @@ class _HeaderText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const Text(
-          '👋 What should we call you?',
-          style: TextStyle(
-            color: AppColors.whiteColor,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
+    return const Text(
+      '👋 What should we call you?',
+      style: TextStyle(
+        color: AppColors.whiteColor,
+        fontSize: 22,
+        fontWeight: FontWeight.bold,
+      ),
     );
   }
 }
@@ -103,44 +101,58 @@ class _NicknameInputField extends StatelessWidget {
 
   final TextEditingController controller;
 
+  static const _containerHeight = 56.0;
+  static const _horizontalPadding = 16.0;
+  static const _borderRadius = 14.0;
+  static const _iconSize = 24.0;
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<TextEditingValue>(
       valueListenable: controller,
       builder: (context, value, _) {
-        final isNotEmpty = value.text.trim().isNotEmpty;
+        final hasText = value.text.trim().isNotEmpty;
 
         return Container(
-          height: 56,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: AppColors.greyShade,
-            borderRadius: BorderRadius.circular(14),
-          ),
+          height: _containerHeight,
+          padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
+          decoration: _buildDecoration(),
           child: Row(
             children: [
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  style: const TextStyle(
-                    color: AppColors.whiteColor,
-                    fontSize: 16,
-                  ),
-                  decoration: const InputDecoration(
-                    hintText: 'Nickname',
-                    hintStyle: TextStyle(color: Colors.white38),
-                    border: InputBorder.none,
-                    isCollapsed: true,
-                  ),
-                ),
-              ),
-
-              if (isNotEmpty)
-                SvgPicture.asset(AppAssets.verified, width: 24, height: 24),
+              Expanded(child: _buildTextField()),
+              if (hasText) _buildVerifiedIcon(),
             ],
           ),
         );
       },
+    );
+  }
+
+  BoxDecoration _buildDecoration() {
+    return BoxDecoration(
+      color: AppColors.greyShade,
+      borderRadius: BorderRadius.circular(_borderRadius),
+    );
+  }
+
+  Widget _buildTextField() {
+    return TextField(
+      controller: controller,
+      style: const TextStyle(color: AppColors.whiteColor, fontSize: 16),
+      decoration: const InputDecoration(
+        hintText: 'Nickname',
+        hintStyle: TextStyle(color: Colors.white38),
+        border: InputBorder.none,
+        isCollapsed: true,
+      ),
+    );
+  }
+
+  Widget _buildVerifiedIcon() {
+    return SvgPicture.asset(
+      AppAssets.verified,
+      width: _iconSize,
+      height: _iconSize,
     );
   }
 }
@@ -150,10 +162,6 @@ class _ContinueButton extends StatelessWidget {
 
   final TextEditingController controller;
 
-  bool _isEnabled(AuthState state, String text) {
-    return text.trim().isNotEmpty && state.status != AuthStatus.verifying;
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
@@ -161,17 +169,20 @@ class _ContinueButton extends StatelessWidget {
         return ValueListenableBuilder<TextEditingValue>(
           valueListenable: controller,
           builder: (context, value, _) {
-            final enabled = _isEnabled(state, value.text);
+            final nickname = value.text.trim();
+            final isValid = nickname.isNotEmpty;
+            final isVerifying = state.status == AuthStatus.verifying;
+            final isEnabled = isValid && !isVerifying;
 
             return SizedBox(
               width: double.infinity,
               child: PrimaryButton(
                 isExpanded: false,
-                isEnabled: enabled,
-                title: state.status == AuthStatus.verifying
-                    ? 'Creating...'
-                    : 'Continue',
-                onPressed: enabled ? () => _submitNickname(context) : null,
+                isEnabled: isEnabled,
+                title: isVerifying ? 'Creating...' : 'Continue',
+                onPressed: isEnabled
+                    ? () => _submitNickname(context, nickname)
+                    : null,
               ),
             );
           },
@@ -180,10 +191,7 @@ class _ContinueButton extends StatelessWidget {
     );
   }
 
-  void _submitNickname(BuildContext context) {
-    final nickname = controller.text.trim();
-    if (nickname.isNotEmpty) {
-      context.read<AuthBloc>().add(SubmitNickname(nickname));
-    }
+  void _submitNickname(BuildContext context, String nickname) {
+    context.read<AuthBloc>().add(SubmitNickname(nickname));
   }
 }
