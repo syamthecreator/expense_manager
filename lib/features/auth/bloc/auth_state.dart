@@ -48,7 +48,6 @@ class AuthState extends Equatable {
     this.errorMessage,
   });
 
-  /// Creates a new state with updated values
   /// Only provided fields will be replaced
   AuthState copyWith({
     String? phone,

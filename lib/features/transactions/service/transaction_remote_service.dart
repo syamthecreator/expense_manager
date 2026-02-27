@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:expense_manager/core/network/api_config.dart';
+import 'package:expense_manager/core/constants/api_config.dart';
 import 'package:http/http.dart' as http;
 
 /// Remote service for transaction APIs

@@ -16,13 +16,11 @@ class TransactionListItem extends StatelessWidget {
     return Stack(
       children: [
         Container(
-          margin: const EdgeInsets.only(bottom: 16),
+          margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(22),
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1C1C1E), Color(0xFF121212)],
-            ),
+            color: const Color.fromRGBO(20, 20, 20, 1),
             border: Border.all(color: Colors.white12),
           ),
           child: Row(

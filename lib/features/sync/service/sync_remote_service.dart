@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:expense_manager/core/network/api_config.dart';
+import 'package:expense_manager/core/constants/api_config.dart';
 import 'package:http/http.dart' as http;
 
 /// Remote service for sync-related APIs
@@ -67,65 +67,71 @@ class SyncRemoteService {
     return List<String>.from(json['deleted_ids']);
   }
 
-  /// Sync new transactions to server
-  Future<List<String>> syncTransactions({
-    required String token,
-    required List<Map<String, dynamic>> transactions,
-  }) async {
-    if (transactions.isEmpty) return [];
+ /// Sync new transactions to server
+Future<List<String>> syncTransactions({
+  required String token,
+  required List<Map<String, dynamic>> transactions,
+}) async {
+  if (transactions.isEmpty) return [];
 
-    final uri = Uri.parse('${ApiConfig.baseUrl}/transactions/add/');
-    log('[SYNC] POST -> $uri');
-    log('Transactions payload: $transactions');
+  final uri = Uri.parse('${ApiConfig.baseUrl}/transactions/add/');
+  log('[SYNC] POST -> $uri');
+  log('Transactions payload: $transactions');
 
-    final response = await http.post(
-      uri,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({'transactions': transactions}),
-    );
+  final response = await http.post(
+    uri,
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({'transactions': transactions}),
+  );
 
-    log('Status: ${response.statusCode}');
-    log('Body: ${response.body}');
+  log('Status: ${response.statusCode}');
+  log('Body: ${response.body}');
 
-    if (response.statusCode != 200) {
-      throw Exception('Transaction sync failed');
-    }
-
-    final json = jsonDecode(response.body);
-    return List<String>.from(json['synced_ids']);
+  if (response.statusCode != 200) {
+    throw Exception('Transaction sync failed');
   }
 
+  final Map<String, dynamic> json = jsonDecode(response.body);
+
+  final List<dynamic> syncedTransactions = json['transactions'] ?? [];
+
+  /// Extract IDs safely
+  return syncedTransactions
+      .map((e) => e['id']?.toString())
+      .whereType<String>()
+      .toList();
+}
   /// Delete transactions from server
-  Future<List<String>> deleteTransactions({
-    required String token,
-    required List<String> ids,
-  }) async {
-    if (ids.isEmpty) return [];
+ Future<List<String>> deleteTransactions({
+  required String token,
+  required List<String> ids,
+}) async {
+  if (ids.isEmpty) return [];
 
-    final uri = Uri.parse('${ApiConfig.baseUrl}/transactions/delete/');
-    log('[SYNC] POST -> $uri');
-    log('Transaction delete IDs: $ids');
+  final uri = Uri.parse('${ApiConfig.baseUrl}/transactions/delete/');
+  log('[SYNC] DELETE -> $uri');
+  log('Transaction delete IDs: $ids');
 
-    final response = await http.post(
-      uri,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({'ids': ids}),
-    );
+  final response = await http.delete(
+    uri,
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({'ids': ids}),
+  );
 
-    log('Status: ${response.statusCode}');
-    log('Body: ${response.body}');
+  log('Status: ${response.statusCode}');
+  log('Body: ${response.body}');
 
-    if (response.statusCode != 200) {
-      throw Exception('Transaction delete failed');
-    }
-
-    final json = jsonDecode(response.body);
-    return List<String>.from(json['deleted_ids']);
+  if (response.statusCode != 200) {
+    throw Exception('Transaction delete failed');
   }
+
+  final json = jsonDecode(response.body);
+  return List<String>.from(json['deleted_ids']);
+}
 }

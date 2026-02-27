@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:expense_manager/core/network/api_config.dart';
+import 'package:expense_manager/core/constants/api_config.dart';
 import 'package:expense_manager/features/categories/model/category_model.dart';
 import 'package:http/http.dart' as http;
 

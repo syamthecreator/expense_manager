@@ -203,7 +203,7 @@ class _TransactionList extends StatelessWidget {
 
           return ListView.separated(
             itemCount: state.transactions.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) => const SizedBox(),
             itemBuilder: (context, index) {
               final item = state.transactions[index];
 

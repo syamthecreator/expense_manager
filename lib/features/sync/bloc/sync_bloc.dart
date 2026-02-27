@@ -9,16 +9,19 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
 
   SyncBloc(this.repository) : super(const SyncInitial()) {
     on<StartSync>(_onStartSync);
+    on<ResetSyncState>((event, emit) {
+      emit(const SyncInitial());
+    });
   }
 
-  Future<void> _onStartSync(
-    StartSync event,
-    Emitter<SyncState> emit,
-  ) async {
+  Future<void> _onStartSync(StartSync event, Emitter<SyncState> emit) async {
     emit(const SyncInProgress());
     try {
       await repository.syncAll();
       emit(const SyncSuccess());
+
+      await Future.delayed(const Duration(seconds: 2));
+      emit(const SyncInitial());
     } catch (e) {
       emit(SyncFailure(e.toString()));
     }

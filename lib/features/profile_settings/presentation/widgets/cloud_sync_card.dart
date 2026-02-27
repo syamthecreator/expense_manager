@@ -1,5 +1,6 @@
 import 'package:expense_manager/app/app_routes.dart';
 import 'package:expense_manager/core/constants/app_assets.dart';
+import 'package:expense_manager/core/utils/app_snackbar.dart';
 import 'package:expense_manager/features/auth/bloc/auth_bloc.dart';
 import 'package:expense_manager/features/auth/bloc/auth_event.dart';
 import 'package:expense_manager/features/sync/bloc/sync_bloc.dart';
@@ -35,80 +36,75 @@ class CloudSyncCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.white24),
           ),
-          child: BlocBuilder<SyncBloc, SyncState>(
-            builder: (context, state) {
-              final bool isSyncing = state is SyncInProgress;
+          child: BlocListener<SyncBloc, SyncState>(
+            listener: (context, state) {
+              if (state is SyncSuccess) {
+                AppSnackbar.showSuccess("Sync completed successfully");
+              }
 
-              return Column(
-                children: [
-                  GestureDetector(
-                    onTap: isSyncing
-                        ? null
-                        : () {
-                            context.read<SyncBloc>().add(const StartSync());
-                          },
-                    child: Opacity(
-                      opacity: isSyncing ? 0.6 : 1,
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2F2F7F),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
-                                  Text(
-                                    'Sync To Cloud',
-                                    style: TextStyle(
-                                      color: AppColors.whiteColor,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  SizedBox(height: 6),
-                                  Text(
-                                    'Sync and update data to the backend',
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
+              if (state is SyncFailure) {
+                AppSnackbar.showError(state.message);
+              }
+            },
+            child: BlocBuilder<SyncBloc, SyncState>(
+              builder: (context, state) {
+                final isSyncing = state is SyncInProgress;
+                final isSuccess = state is SyncSuccess;
+
+                return GestureDetector(
+                  onTap: isSyncing
+                      ? null
+                      : () {
+                          context.read<SyncBloc>().add(const StartSync());
+                        },
+                  child: Opacity(
+                    opacity: isSyncing ? 0.6 : 1,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2F2F7F),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              'Sync To Cloud',
+                              style: TextStyle(
+                                color: AppColors.whiteColor,
+
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-
-                            Center(
-                              child: SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: isSyncing
-                                    ? const CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation(
-                                          Colors.white,
-                                        ),
-                                      )
-                                    : SvgPicture.asset(
-                                        AppAssets.cloud,
-                                        colorFilter: const ColorFilter.mode(
-                                          AppColors.whiteColor,
-                                          BlendMode.srcIn,
-                                        ),
-                                      ),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                          SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: isSyncing
+                                ? const CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation(
+                                      AppColors.whiteColor,
+                                    ),
+                                  )
+                                : isSuccess
+                                ? const Icon(
+                                    Icons.check_circle,
+                                    color: AppColors.greenColour,
+                                  )
+                                : const Icon(
+                                    Icons.cloud_outlined,
+                                    color: AppColors.whiteColor,
+                                  ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ],
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
         const SizedBox(height: 14),

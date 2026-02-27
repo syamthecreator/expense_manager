@@ -12,3 +12,7 @@ abstract class SyncEvent extends Equatable {
 class StartSync extends SyncEvent {
   const StartSync();
 }
+
+class ResetSyncState extends SyncEvent {
+  const ResetSyncState();
+}

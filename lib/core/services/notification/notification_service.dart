@@ -1,10 +1,12 @@
 import 'dart:developer';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+/// Service responsible for handling local notifications
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
 
+  /// Initializes notification plugin and requests permission
   static Future<void> init() async {
     log('Initializing NotificationService', name: 'NotificationService');
 
@@ -29,6 +31,7 @@ class NotificationService {
     );
   }
 
+  /// Shows notification when monthly spending limit is exceeded
   static Future<void> showLimitExceeded(double spent, double limit) async {
     log(
       'Triggering limit exceeded notification',

@@ -1,6 +1,8 @@
 import 'dart:developer';
 
 import 'package:expense_manager/core/services/notification/notification_service.dart';
+import 'package:expense_manager/features/sync/bloc/sync_bloc.dart';
+import 'package:expense_manager/features/sync/bloc/sync_event.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/transaction_repository.dart';
@@ -10,8 +12,10 @@ import 'transaction_state.dart';
 /// BLoC responsible for transaction operations
 class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
   final TransactionRepository repository;
+  final SyncBloc syncBloc;
 
-  TransactionBloc(this.repository) : super(const TransactionState()) {
+  TransactionBloc(this.repository, this.syncBloc)
+    : super(const TransactionState()) {
     on<LoadRecentTransactions>(_onLoadRecent);
     on<LoadAllTransactions>(_onLoadAll);
     on<AddTransaction>(_onAddTransaction);
@@ -90,6 +94,7 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     log('Transaction saved to database', name: 'TransactionBloc');
 
     // Trigger notification ONLY when crossing limit
+    syncBloc.add(const ResetSyncState());
     if (event.type == 'debit') {
       final newTotal = previousTotal + event.amount;
 
@@ -112,6 +117,8 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     log('Delete transaction: ${event.transactionId}', name: 'TransactionBloc');
 
     await repository.deleteTransaction(event.transactionId);
+
+     syncBloc.add(const ResetSyncState());
 
     emit(
       state.copyWith(
