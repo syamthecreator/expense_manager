@@ -280,7 +280,9 @@ class _VerifyButtonSection extends StatelessWidget {
           children: [
             SizedBox(
               width: double.infinity,
-              child: PrimaryButton(
+              child: 
+              
+              PrimaryButton(
                 isExpanded: false,
                 title: buttonText,
                 isEnabled: enabled,

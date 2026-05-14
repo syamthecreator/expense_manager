@@ -1,6 +1,9 @@
+import 'package:expense_manager/core/constants/app_assets.dart';
 import 'package:expense_manager/core/constants/app_colors.dart';
+import 'package:expense_manager/core/utils/helper.dart';
 import 'package:expense_manager/features/home/model/monthly_limit_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class MonthlyLimitCard extends StatelessWidget {
   final MonthlyLimitModel model;
@@ -47,28 +50,49 @@ class MonthlyLimitCard extends StatelessWidget {
   }
 
   Widget _buildAmountText() {
-    final spentAmount = '₹${model.spentAmount.toStringAsFixed(0)}';
-    final totalAmount = ' / ₹${model.totalLimit.toStringAsFixed(0)}';
+  final helper = Helper();
 
-    return RichText(
-      text: TextSpan(
-        children: [
-          TextSpan(
-            text: spentAmount,
-            style: const TextStyle(
-              color: Color.fromRGBO(255, 255, 255, 0.6),
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
+  final spentAmount = '₹${helper.formatNumber(model.spentAmount)}';
+  final totalAmount = ' / ₹${helper.formatNumber(model.totalLimit)}';
+
+  final bool isExceeded = model.spentAmount >= model.totalLimit;
+
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      RichText(
+        text: TextSpan(
+          children: [
+            TextSpan(
+              text: spentAmount,
+              style: const TextStyle(
+                color: Color.fromRGBO(255, 255, 255, 0.6),
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          TextSpan(
-            text: totalAmount,
-            style: const TextStyle(color: Colors.white54, fontSize: 26),
-          ),
-        ],
+            TextSpan(
+              text: totalAmount,
+              style: const TextStyle(
+                color: Colors.white54,
+                fontSize: 26,
+              ),
+            ),
+          ],
+        ),
       ),
-    );
-  }
+
+      const Spacer(),
+
+      if (isExceeded)
+        SvgPicture.asset(
+          AppAssets.verified,
+          width: 20,
+          height: 20,
+        ),
+    ],
+  );
+}
 
   Widget _buildProgressBar() {
     return ClipRRect(
@@ -83,22 +107,39 @@ class MonthlyLimitCard extends StatelessWidget {
   }
 
   Widget _buildProgressFill() {
+    final exceeded = model.spentAmount >= model.totalLimit;
+
     return FractionallySizedBox(
       alignment: Alignment.centerLeft,
       widthFactor: model.progress.clamp(0.0, 1.0),
       child: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-            colors: [AppColors.startGreen, AppColors.endGreen],
-          ),
+        decoration: BoxDecoration(
+          gradient: exceeded
+              ? LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [AppColors.lightRedColour, AppColors.darkRedColour],
+                )
+              : const LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [AppColors.startGreen, AppColors.endGreen],
+                ),
         ),
       ),
     );
   }
 
   Widget _buildRemainingText() {
+    final exceeded = model.spentAmount >= model.totalLimit;
+
+    if (exceeded) {
+      return const Text(
+        'Limit Exceeded',
+        style: TextStyle(color: Colors.white70, fontSize: 16),
+      );
+    }
+
     return Text(
       '${model.remainingPercentage}% Remaining',
       style: const TextStyle(color: Color(0x99FFFFFF), fontSize: 16),

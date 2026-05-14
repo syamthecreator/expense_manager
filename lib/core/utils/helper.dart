@@ -1,4 +1,6 @@
 import 'package:expense_manager/features/transactions/model/transaction_model.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Helper {
@@ -40,5 +42,30 @@ class Helper {
         .fold(0.0, (sum, t) => sum + t.transaction.amount);
   }
 
+  String formatNumber(num value) {
+    final formatter = NumberFormat('#,##,###');
+    return formatter.format(value);
+  }
+
+    static final NumberFormat _formatter = NumberFormat('#,##,###');
+
+
+  static TextInputFormatter currencyFormatter() {
+    return TextInputFormatter.withFunction((oldValue, newValue) {
+      if (newValue.text.isEmpty) return newValue;
+
+      final digitsOnly = newValue.text.replaceAll(',', '');
+
+      final number = int.tryParse(digitsOnly);
+      if (number == null) return oldValue;
+
+      final newText = _formatter.format(number);
+
+      return TextEditingValue(
+        text: newText,
+        selection: TextSelection.collapsed(offset: newText.length),
+      );
+    });
   
+}
 }

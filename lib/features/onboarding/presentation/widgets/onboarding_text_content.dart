@@ -18,20 +18,27 @@ class OnboardingTextContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(padding: _padding, child: _AnimatedTextContent());
+    return Padding(
+      padding: _padding,
+      child: _AnimatedTextContent(
+        title: title,
+        description: description,
+      ),
+    );
   }
 }
 
 class _AnimatedTextContent extends StatelessWidget {
-  const _AnimatedTextContent();
+  final String title;
+  final String description;
+
+  const _AnimatedTextContent({
+    required this.title,
+    required this.description,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final onboardingTextContent = context
-        .findAncestorWidgetOfExactType<OnboardingTextContent>();
-    final title = onboardingTextContent?.title ?? '';
-    final description = onboardingTextContent?.description ?? '';
-
     return AnimatedSwitcher(
       duration: OnboardingTextContent._animationDuration,
       switchInCurve: Curves.easeIn,

@@ -97,7 +97,7 @@ class _SummaryCardsRow extends StatelessWidget {
             Expanded(
               child: SummaryCard(
                 title: 'Total Income',
-                amount: '₹${income.toStringAsFixed(0)}',
+                amount: '₹${Helper().formatNumber(income)}',
                 isIncome: true,
               ),
             ),
@@ -105,7 +105,7 @@ class _SummaryCardsRow extends StatelessWidget {
             Expanded(
               child: SummaryCard(
                 title: 'Total Expense',
-                amount: '₹${expense.toStringAsFixed(0)}',
+                amount: '₹${Helper().formatNumber(expense)}',
                 isIncome: false,
               ),
             ),

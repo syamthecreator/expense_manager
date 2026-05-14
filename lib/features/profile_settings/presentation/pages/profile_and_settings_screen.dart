@@ -4,6 +4,7 @@ import 'package:expense_manager/features/profile_settings/bloc/profile_settings_
 import 'package:expense_manager/features/profile_settings/presentation/widgets/alert_limit_card.dart';
 import 'package:expense_manager/features/profile_settings/presentation/widgets/categories_card.dart';
 import 'package:expense_manager/features/profile_settings/presentation/widgets/cloud_sync_card.dart';
+import 'package:expense_manager/features/profile_settings/presentation/widgets/nickname_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -31,7 +32,9 @@ class ProfileAndSettingsScreen extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
+              const SizedBox(height: 24),
 
+              const NicknameCard(),
               const SizedBox(height: 24),
 
               const AlertLimitCard(),

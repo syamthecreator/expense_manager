@@ -104,7 +104,7 @@ class _NicknameInputField extends StatelessWidget {
   static const _containerHeight = 56.0;
   static const _horizontalPadding = 16.0;
   static const _borderRadius = 14.0;
-  static const _iconSize = 24.0;
+  static const _iconSize = 20.0;
 
   @override
   Widget build(BuildContext context) {

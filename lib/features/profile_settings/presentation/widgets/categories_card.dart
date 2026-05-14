@@ -48,6 +48,7 @@ class CategoriesCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: TextField(
+                    textCapitalization: TextCapitalization.words,
                     controller: controller,
                     style: const TextStyle(color: AppColors.whiteColor),
                     decoration: const InputDecoration(
@@ -67,14 +68,12 @@ class CategoriesCard extends StatelessWidget {
                     final name = controller.text.trim();
                     if (name.isEmpty) return;
 
-                    context
-                        .read<ProfileSettingsBloc>()
-                        .add(AddCategory(name));
+                    context.read<ProfileSettingsBloc>().add(AddCategory(name));
 
                     controller.clear();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3B3BFF),
+                    backgroundColor: AppColors.kPrimaryColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -121,9 +120,9 @@ class CategoriesCard extends StatelessWidget {
                   ),
                   GestureDetector(
                     onTap: () {
-                      context
-                          .read<ProfileSettingsBloc>()
-                          .add(RemoveCategory(item));
+                      context.read<ProfileSettingsBloc>().add(
+                        RemoveCategory(item),
+                      );
                     },
                     child: Container(
                       height: 42,

@@ -19,6 +19,7 @@ class AppAssets {
   static const String bill = "assets/icons/bill.svg";
   static const String transport = "assets/icons/transport.svg";
   static const String category = "assets/icons/category.svg";
+  static const String edit = "assets/icons/edit.svg";
 
   // Images
   static const String onboardingImage = "assets/images/onboarding_image.png";
